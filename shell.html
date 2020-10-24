@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <link id='-gd-engine-icon' rel='icon' type='image/png' href='favicon.png'>
+    <title>$GODOT_PROJECT_NAME</title>
+
+    <style>
+        :root {
+            --bg-color: #4d4d4d;
+        }
+
+        body {
+            touch-action: none;
+            margin: 0;
+            border: 0 none;
+            padding: 0;
+            text-align: center;
+        }
+
+        #canvas {
+			display: block;
+			margin: 0;
+			color: white;
+		}
+		#canvas:focus {
+			outline: none;
+		}
+
+        .godot {
+			font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+			color: #e0e0e0;
+			background-color: #3b3943;
+			background-image: linear-gradient(to bottom, #403e48, #35333c);
+			border: 1px solid #45434e;
+			box-shadow: 0 0 1px 1px #2f2d35;
+		}
+
+
+		/* Status display
+		 * ============== */
+
+		#status {
+			position: absolute;
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			/* don't consume click events - make children visible explicitly */
+			visibility: hidden;
+		}
+
+		#status-progress {
+            width: 25vw;
+        }
+
+		#status-indeterminate {
+            width: 25vw;
+			visibility: visible;
+			position: relative;
+		}
+
+		#status-notice {
+			margin: 0 100px;
+			line-height: 1.3;
+			visibility: visible;
+			padding: 4px 6px;
+			visibility: visible;
+		}
+    </style>
+
+    <!-- Material progress bar -->
+    <style>.progress{position:relative;height:4px;display:block;width:100%;background-color:#acece6;border-radius:2px;background-clip:padding-box;margin:0.5rem 0 1rem;overflow:hidden}.progress .determinate{position:absolute;background-color:inherit;top:0;bottom:0;background-color:#26a69a;transition:width 0.3s linear}.progress .indeterminate{background-color:#26a69a}.progress .indeterminate:before{content:'';position:absolute;background-color:inherit;top:0;left:0;bottom:0;will-change:left, right;-webkit-animation:indeterminate 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;animation:indeterminate 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite}.progress .indeterminate:after{content:'';position:absolute;background-color:inherit;top:0;left:0;bottom:0;will-change:left, right;-webkit-animation:indeterminate-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;animation:indeterminate-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;-webkit-animation-delay:1.15s;animation-delay:1.15s}@-webkit-keyframes indeterminate{0%{left:-35%;right:100%}60%{left:100%;right:-90%}100%{left:100%;right:-90%}}@keyframes indeterminate{0%{left:-35%;right:100%}60%{left:100%;right:-90%}100%{left:100%;right:-90%}}@-webkit-keyframes indeterminate-short{0%{left:-200%;right:100%}60%{left:107%;right:-8%}100%{left:107%;right:-8%}}@keyframes indeterminate-short{0%{left:-200%;right:100%}60%{left:107%;right:-8%}100%{left:107%;right:-8%}}</style>
+
+$GODOT_HEAD_INCLUDE
+</head>
+<body>
+    <canvas id='canvas'>
+		HTML5 canvas appears to be unsupported in the current browser.<br />
+		Please try updating or use a different browser.
+	</canvas>
+	<div id='status'>
+        <div id='status-progress' style='display: none;' oncontextmenu='event.preventDefault();'>
+            <img src="https://img.itch.zone/aW1nLzQ0MzAzMjAucG5n/35x35%23/dmY6O3.png" alt="TrickyPR">
+            <div class="progress">
+                <div class="determinate" id="status-progress-inner"></div>
+            </div>
+        </div>
+		<div id='status-indeterminate' style='display: none;' oncontextmenu='event.preventDefault();'>
+            <img src="https://img.itch.zone/aW1nLzQ0MzAzMjAucG5n/35x35%23/dmY6O3.png" alt="TrickyPR">
+            <div class="progress">
+                <div class="indeterminate"></div>
+            </div>
+		</div>
+		<div id='status-notice' class='godot' style='display: none;'></div>
+	</div>
+
+	<script type='text/javascript' src='$GODOT_BASENAME.js'></script>
+	<script type='text/javascript'>//<![CDATA[
+        let engine = new Engine()
+
+		let setStatusMode, setStatusNotice;
+
+		(function() {
+
+			const EXECUTABLE_NAME = '$GODOT_BASENAME';
+			const MAIN_PACK = '$GODOT_BASENAME.pck';
+			const EXTRA_ARGS = JSON.parse('$GODOT_ARGS');
+			const INDETERMINATE_STATUS_STEP_MS = 100;
+			const FULL_WINDOW = $GODOT_FULL_WINDOW;
+
+			var canvas = document.getElementById('canvas');
+			var statusProgress = document.getElementById('status-progress');
+			var statusProgressInner = document.getElementById('status-progress-inner');
+			var statusIndeterminate = document.getElementById('status-indeterminate');
+			var statusNotice = document.getElementById('status-notice');
+
+			var initializing = true;
+			var statusMode = 'hidden';
+			var lastWidth = 0;
+			var lastHeight = 0;
+			var lastScale = 0;
+
+			var animationCallbacks = [];
+			function animate(time) {
+				animationCallbacks.forEach(callback => callback(time));
+				requestAnimationFrame(animate);
+			}
+			requestAnimationFrame(animate);
+
+			function adjustCanvasDimensions() {
+				const scale = window.devicePixelRatio || 1;
+				if (lastWidth != window.innerWidth || lastHeight != window.innerHeight || lastScale != scale) {
+					lastScale = scale;
+					lastWidth = window.innerWidth;
+					lastHeight = window.innerHeight;
+					canvas.width = Math.floor(lastWidth * scale);
+					canvas.height = Math.floor(lastHeight * scale);
+					canvas.style.width = lastWidth + "px";
+					canvas.style.height = lastHeight + "px";
+				}
+			}
+			if (FULL_WINDOW) {
+				animationCallbacks.push(adjustCanvasDimensions);
+				adjustCanvasDimensions();
+			} else {
+				engine.setCanvasResizedOnStart(true);
+			}
+
+			setStatusMode = (mode) => {
+                if (statusMode === mode || !initializing)
+                    return;
+                    
+				[statusProgress, statusIndeterminate, statusNotice].forEach(elem => {
+					elem.style.display = 'none';
+                });
+                
+				animationCallbacks = animationCallbacks.filter(function(value) {
+					return (value != animateStatusIndeterminate);
+                });
+                
+				switch (mode) {
+					case 'progress':
+						statusProgress.style.display = 'block';
+						break;
+					case 'indeterminate':
+						statusIndeterminate.style.display = 'block';
+						animationCallbacks.push(animateStatusIndeterminate);
+						break;
+					case 'notice':
+						statusNotice.style.display = 'block';
+						break;
+					case 'hidden':
+						break;
+					default:
+						throw new Error('Invalid status mode');
+                }
+                
+				statusMode = mode;
+			};
+
+			function animateStatusIndeterminate(ms) {
+
+				var i = Math.floor(ms / INDETERMINATE_STATUS_STEP_MS % 8);
+				if (statusIndeterminate.children[i].style.borderTopColor == '') {
+					Array.prototype.slice.call(statusIndeterminate.children).forEach(child => {
+						child.style.borderTopColor = '';
+					});
+					statusIndeterminate.children[i].style.borderTopColor = '#dfdfdf';
+				}
+			}
+
+			setStatusNotice = function setStatusNotice(text) {
+
+				while (statusNotice.lastChild) {
+					statusNotice.removeChild(statusNotice.lastChild);
+				}
+				var lines = text.split('\n');
+				lines.forEach((line) => {
+					statusNotice.appendChild(document.createTextNode(line));
+					statusNotice.appendChild(document.createElement('br'));
+				});
+			};
+
+			engine.setProgressFunc((current, total) => {
+
+				if (total > 0) {
+					statusProgressInner.style.width = current/total * 100 + '%';
+					setStatusMode('progress');
+					if (current === total) {
+						// wait for progress bar animation
+						setTimeout(() => {
+							setStatusMode('indeterminate');
+						}, 500);
+					}
+				} else {
+					setStatusMode('indeterminate');
+				}
+			});
+
+			function displayFailureNotice(err) {
+				var msg = err.message || err;
+				console.error(msg);
+				setStatusNotice(msg);
+				setStatusMode('notice');
+				initializing = false;
+			};
+
+			if (!Engine.isWebGLAvailable()) {
+				displayFailureNotice('WebGL not available');
+			} else {
+				setStatusMode('indeterminate');
+				engine.setCanvas(canvas);
+				engine.startGame(EXECUTABLE_NAME, MAIN_PACK, EXTRA_ARGS).then(() => {
+					setStatusMode('hidden');
+					initializing = false;
+				}, displayFailureNotice);
+			}
+		})();
+	//]]></script>
+</body>
+</html>
