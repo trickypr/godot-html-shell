@@ -161,7 +161,6 @@ $GODOT_HEAD_INCLUDE
 						break;
 					case 'indeterminate':
 						statusIndeterminate.style.display = 'block';
-						animationCallbacks.push(animateStatusIndeterminate);
 						break;
 					case 'notice':
 						statusNotice.style.display = 'block';
@@ -175,18 +174,7 @@ $GODOT_HEAD_INCLUDE
 				statusMode = mode;
 			};
 
-			function animateStatusIndeterminate(ms) {
-
-				var i = Math.floor(ms / INDETERMINATE_STATUS_STEP_MS % 8);
-				if (statusIndeterminate.children[i].style.borderTopColor == '') {
-					Array.prototype.slice.call(statusIndeterminate.children).forEach(child => {
-						child.style.borderTopColor = '';
-					});
-					statusIndeterminate.children[i].style.borderTopColor = '#dfdfdf';
-				}
-			}
-
-			setStatusNotice = function setStatusNotice(text) {
+			setStatusNotice = (text) => {
 
 				while (statusNotice.lastChild) {
 					statusNotice.removeChild(statusNotice.lastChild);
