@@ -108,7 +108,6 @@ $GODOT_HEAD_INCLUDE
 			const EXECUTABLE_NAME = '$GODOT_BASENAME';
 			const MAIN_PACK = '$GODOT_BASENAME.pck';
 			const INDETERMINATE_STATUS_STEP_MS = 100;
-			const FULL_WINDOW = $GODOT_FULL_WINDOW;
 
 			var canvas = document.getElementById('canvas');
 			var statusProgress = document.getElementById('status-progress');
@@ -141,12 +140,8 @@ $GODOT_HEAD_INCLUDE
 					canvas.style.height = lastHeight + "px";
 				}
 			}
-			if (FULL_WINDOW) {
-				animationCallbacks.push(adjustCanvasDimensions);
-				adjustCanvasDimensions();
-			} else {
-				engine.setCanvasResizedOnStart(true);
-			}
+
+            engine.setCanvasResizedOnStart(true);
 
 			setStatusMode = (mode) => {
                 if (statusMode === mode || !initializing)
