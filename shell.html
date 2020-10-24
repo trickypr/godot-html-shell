@@ -114,6 +114,7 @@ $GODOT_HEAD_INCLUDE
 			var statusProgressInner = document.getElementById('status-progress-inner');
 			var statusIndeterminate = document.getElementById('status-indeterminate');
 			var statusNotice = document.getElementById('status-notice');
+            var status = document.getElementById('status')
 
 			var initializing = true;
 			var statusMode = 'hidden';
@@ -157,15 +158,19 @@ $GODOT_HEAD_INCLUDE
                 
 				switch (mode) {
 					case 'progress':
-						statusProgress.style.display = 'block';
+                        statusProgress.style.display = 'block';
+                        status.style.visibility = 'visible'
 						break;
 					case 'indeterminate':
-						statusIndeterminate.style.display = 'block';
+                        statusIndeterminate.style.display = 'block';
+                        status.style.visibility = 'visible'
 						break;
 					case 'notice':
-						statusNotice.style.display = 'block';
+                        statusNotice.style.display = 'block';
+                        status.style.visibility = 'visible'
 						break;
 					case 'hidden':
+                        status.style.visibility = 'hidden'
 						break;
 					default:
 						throw new Error('Invalid status mode');
