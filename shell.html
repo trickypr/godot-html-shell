@@ -69,6 +69,13 @@
 			padding: 4px 6px;
 			visibility: visible;
 		}
+
+        img {
+            width: 100%;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
     </style>
 
     <!-- Material progress bar -->
@@ -83,13 +90,13 @@ $GODOT_HEAD_INCLUDE
 	</canvas>
 	<div id='status'>
         <div id='status-progress' style='display: none;' oncontextmenu='event.preventDefault();'>
-            <img src="https://img.itch.zone/aW1nLzQ0MzAzMjAucG5n/35x35%23/dmY6O3.png" alt="TrickyPR">
+            <img src="GODOT_BASENAME.png" alt="TrickyPR">
             <div class="progress">
                 <div class="determinate" id="status-progress-inner"></div>
             </div>
         </div>
 		<div id='status-indeterminate' style='display: none;' oncontextmenu='event.preventDefault();'>
-            <img src="https://img.itch.zone/aW1nLzQ0MzAzMjAucG5n/35x35%23/dmY6O3.png" alt="TrickyPR">
+            <img src="GODOT_BASENAME.png" alt="TrickyPR">
             <div class="progress">
                 <div class="indeterminate"></div>
             </div>
