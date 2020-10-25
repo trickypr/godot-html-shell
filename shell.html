@@ -84,10 +84,6 @@
 $GODOT_HEAD_INCLUDE
 </head>
 <body>
-    <canvas id='canvas'>
-		HTML5 canvas appears to be unsupported in the current browser.<br />
-		Please try updating or use a different browser.
-	</canvas>
 	<div id='status'>
         <div id='status-progress' style='display: none;' oncontextmenu='event.preventDefault();'>
             <img src="$GODOT_BASENAME.png" alt="TrickyPR">
@@ -102,6 +98,11 @@ $GODOT_HEAD_INCLUDE
             </div>
 		</div>
 		<div id='status-notice' class='godot' style='display: none;'></div>
+
+		<canvas id='canvas'>
+			HTML5 canvas appears to be unsupported in the current browser.<br />
+			Please try updating or use a different browser.
+		</canvas>
 	</div>
 
 	<script type='text/javascript' src='$GODOT_BASENAME.js'></script>
@@ -148,9 +149,9 @@ $GODOT_HEAD_INCLUDE
 					canvas.style.height = lastHeight + "px";
 				}
 			}
-			document.body.addEventListener('resize', adjustCanvasDimensions)
-
-            engine.setCanvasResizedOnStart(true);
+			
+			animationCallbacks.push(adjustCanvasDimensions);
+			adjustCanvasDimensions();
 
 			setStatusMode = (mode) => {
                 if (statusMode === mode || !initializing)
