@@ -161,10 +161,6 @@ $GODOT_HEAD_INCLUDE
 					elem.style.display = 'none';
                 });
                 
-				animationCallbacks = animationCallbacks.filter(function(value) {
-					return (value != animateStatusIndeterminate);
-                });
-                
 				switch (mode) {
 					case 'progress':
                         statusProgress.style.display = 'block';
