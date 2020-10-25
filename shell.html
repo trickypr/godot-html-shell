@@ -148,6 +148,7 @@ $GODOT_HEAD_INCLUDE
 					canvas.style.height = lastHeight + "px";
 				}
 			}
+			body.addEventListener('resize', adjustCanvasDimensions)
 
             engine.setCanvasResizedOnStart(true);
 
